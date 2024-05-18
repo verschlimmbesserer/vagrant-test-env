@@ -1,0 +1,76 @@
+---
+# |-------------------------------------------|
+machine_ram: &machine_ram "1024" # auto, 1024
+machine_cpu: &machine_cpu "1" # auto, 1
+vagrant_box: &vagrant_box "bento/ubuntu-22.04"
+# |-------------------------------------------|
+
+provider: "vmware_desktop"
+
+salt_master_conf: &master_conf
+  install_master: true
+  no_minion: false
+  install_type: "stable"
+  verbose: true
+  colorize: true
+  bootstrap_options: "-P -A salt.vagrant.test"
+  python_version: "3"
+
+salt_minion_conf: &minion_conf
+  install_type: "stable"
+  verbose: true
+  colorize: true
+  bootstrap_options: "-P -A salt.vagrant.test"
+  python_version: "3"
+
+dns:
+  tld: "vagrant.test"
+
+customize_virtualbox: &cvb
+  usb: "off"
+  usbehci: "off"
+  nictype1: "virtio"
+  nictype2: "virtio"
+  natdnsproxy1: "on"
+  natdnshostresolver1: "on"
+
+customize_parallels: &cprl
+  longer-battery-life: "on"
+
+hosts:
+  - name: salt
+    box_check_update: true
+    box: "bento/ubuntu-22.04"
+    ram: "2048"
+    cpu: 2
+    update_guest_tools: false
+    ssh:
+      - "~/.ssh/id_rsa.pub"
+    private_network:
+      - type: dhcp
+    syncDir:
+      - host: "../salt/pillar/"
+        guest: "/srv/pillar/"
+      - host: "../salt/salt/"
+        guest: "/srv/salt/"
+    salt: *master_conf
+  - name: minion01
+    box: "bento/ubuntu-22.04"
+    box_check_update: true
+    ram: "2048"
+    cpus: "2"
+    ssh:
+      - "~/.ssh/id_rsa.pub"
+    private_network:
+      - type: dhcp
+    salt: *minion_conf
+  - name: minion02
+    box: "bento/ubuntu-22.04"
+    box_check_update: true
+    ram: "2048"
+    cpus: "1"
+    ssh:
+      - "~/.ssh/id_rsa.pub"
+    private_network:
+      - type: dhcp
+    salt: *minion_conf
