@@ -11,11 +11,11 @@ DEFAULT_VM_MEMORY = 1024
 DEFAULT_VM_CPU = 1
 VAGRANTFILE_API_VERSION = "2"
 
-VagrantDNS::Config.listen = [[:udp, "192.168.203.1", 5300],[:tcp, "192.168.203.1", 5300]]
+VagrantDNS::Config.listen = [[:udp, "192.168.122.1", 5300],[:tcp, "192.168.122.1", 5300]]
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
-    provider = servers.fetch("provider", ["parallels", "vmware_desktop"])
+    provider = servers.fetch("provider", ["parallels", "vmware_desktop", "libvirt"])
     config.vm.provider provider.downcase
 
     config.vagrant.plugins = [{"vagrant-dns" => {"version" => "2.4.1"}}]
@@ -47,6 +47,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
                     prl.customize ["set", :id, "--#{option}", "#{state}"]
                   end
                 end
+            end
+
+            srv.vm.provider :libvirt do |libvirt|
+              libvirt.memory = server["ram"] ||= DEFAULT_VM_MEMORY
+              libvirt.cpus = server["cpus"] ||= DEFAULT_VM_CPU
+              libvirt.default_prefix = ""
             end
 
 
